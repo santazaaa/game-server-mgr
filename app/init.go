@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/revel/revel"
+	"github.com/go-redis/redis"
 )
 
 var (
@@ -10,6 +11,9 @@ var (
 
 	// BuildTime revel app build-time (ldflags)
 	BuildTime string
+
+	// RedisCli redis client
+	RedisCli *redis.Client
 )
 
 func init() {
@@ -33,8 +37,8 @@ func init() {
 	// register startup functions with OnAppStart
 	// revel.DevMode and revel.RunMode only work inside of OnAppStart. See Example Startup Script
 	// ( order dependent )
-	// revel.OnAppStart(ExampleStartupScript)
-	// revel.OnAppStart(InitDB)
+	revel.OnAppStart(ExampleStartupScript)
+	revel.OnAppStart(InitDB)
 	// revel.OnAppStart(FillCache)
 }
 
@@ -50,10 +54,18 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 	fc[0](c, fc[1:]) // Execute the next filter stage.
 }
 
-//func ExampleStartupScript() {
-//	// revel.DevMod and revel.RunMode work here
-//	// Use this script to check for dev mode and set dev/prod startup scripts here!
-//	if revel.DevMode == true {
-//		// Dev mode
-//	}
-//}
+func ExampleStartupScript() {
+	// revel.DevMod and revel.RunMode work here
+	// Use this script to check for dev mode and set dev/prod startup scripts here!
+	println("test")
+}
+
+func InitDB() {
+	println("InitDB")
+	RedisCli = redis.NewClient(&redis.Options {
+		Addr: "localhost:6379",
+		Password: "",
+		DB: 0,
+	})
+	println("DB Connected");
+}
