@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/revel/revel"
 	"github.com/go-redis/redis"
+	"santa/game-server-mgr/app/utils"
 )
 
 var (
@@ -14,6 +15,15 @@ var (
 
 	// RedisCli redis client
 	RedisCli *redis.Client
+
+	// MatchCount number of matches played
+	MatchCount int
+
+	// InstanceCount number of running game server instances
+	InstanceCount int
+
+	// PortManager port manager instance
+	PortManager *utils.PortMgr
 )
 
 func init() {
@@ -57,7 +67,11 @@ var HeaderFilter = func(c *revel.Controller, fc []revel.Filter) {
 func ExampleStartupScript() {
 	// revel.DevMod and revel.RunMode work here
 	// Use this script to check for dev mode and set dev/prod startup scripts here!
-	println("test")
+	MatchCount = 0
+	InstanceCount = 0
+	PortManager = &utils.PortMgr{}
+	PortManager.Init(7777, 20)
+	revel.INFO.Printf("Next port: %v", PortManager.GetNext())
 }
 
 func InitDB() {

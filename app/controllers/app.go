@@ -16,6 +16,7 @@ import (
 
 type App struct {
 	*revel.Controller
+	
 }
 
 type StartGameResponse struct {
@@ -104,7 +105,8 @@ func (c App) StartGame() revel.Result {
 	gameID := uuid.NewV4().String()
 
 	revel.INFO.Println("[app::StartGame] Starting new game instance id = " + gameID)
-
+	app.InstanceCount++
+	
 	go func() {
 		cmd := exec.Command(fmt.Sprintf("./%v", executableName), "-batchmode", "-nographics", "-logfile", "log.txt")
 		cmd.Dir = fmt.Sprintf("%v/%v.app/Contents/MacOS/", buildPath, executableName)
@@ -112,6 +114,7 @@ func (c App) StartGame() revel.Result {
 		if err != nil {
 			revel.ERROR.Println(err)
 		}
+		app.InstanceCount--
 		revel.INFO.Println("[app::StartGame] Closed game instance id = " + gameID)
 	}()
 	
@@ -120,9 +123,12 @@ func (c App) StartGame() revel.Result {
 	res := StartGameResponse{
 		GameID:         gameID,
 		ServerHostname: "localhost",
-		ServerPort:     7777,
+		ServerPort:     app.PortManager.GetNext(),
 	}
 	data["data"] = res
-	
+
+	app.MatchCount++
+	revel.INFO.Printf("[app::StartGame] MatchCount = %v, Running instances = %v", app.MatchCount, app.InstanceCount)
+
 	return c.RenderJSON(data)
 }
